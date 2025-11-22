@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastTrack Logistics | Admin Login Portal</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Transition for page switching */
+        .page-section {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-active { color: #93c5fd; font-weight: bold; border-bottom: 2px solid #93c5fd; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <nav class="bg-blue-900 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="router('home')">
+                <i class="fa-solid fa-truck-fast text-2xl text-blue-300"></i>
+                <span class="text-xl font-bold tracking-wide">FastTrack</span>
+            </div>
+            
+            <ul class="hidden md:flex space-x-8 font-medium items-center">
+                <li><button onclick="router('home')" id="nav-home" class="hover:text-blue-300 transition py-1">Home</button></li>
+                <li><button onclick="router('track')" id="nav-track" class="hover:text-blue-300 transition py-1">Track Shipment</button></li>
+                <li><button onclick="checkAdminAccess()" id="nav-admin" class="hover:text-blue-300 transition py-1">Admin Panel</button></li>
+                <li><button onclick="router('contact')" id="nav-contact" class="hover:text-blue-300 transition py-1">Contact Us</button></li>
+            </ul>
+
+            <button class="md:hidden"><i class="fa-solid fa-bars text-xl"></i></button>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl relative">
+
+        <section id="page-home" class="page-section">
+            <div class="text-center py-12">
+                <span class="text-blue-600 font-semibold tracking-wider text-sm uppercase">World Class Delivery</span>
+                <h1 class="text-4xl md:text-6xl font-bold text-slate-900 mt-2 mb-6">Logistics made <span class="text-blue-600">Simple</span>.</h1>
+                <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Fast, reliable, and secure delivery solutions for your business. We connect the world, one package at a time.</p>
+                <div class="flex justify-center gap-4">
+                    <button onclick="router('track')" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg transition transform active:scale-95">
+                        Track Shipment
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
+                    <i class="fa-solid fa-stopwatch text-3xl text-blue-500 mb-3"></i>
+                    <h3 class="font-bold text-lg">Fast Delivery</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
+                    <i class="fa-solid fa-shield-halved text-3xl text-green-500 mb-3"></i>
+                    <h3 class="font-bold text-lg">Secure Cargo</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
+                    <i class="fa-solid fa-headset text-3xl text-orange-500 mb-3"></i>
+                    <h3 class="font-bold text-lg">24/7 Support</h3>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-track" class="page-section hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-slate-100 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Track Your Shipment</h2>
+                <p class="text-slate-500 mb-8">Enter your tracking ID (e.g., TRK001, TRK002)</p>
+                
+                <div class="flex flex-col md:flex-row gap-3 mb-6">
+                    <input type="text" id="trackInput" placeholder="Enter ID" class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 uppercase text-lg outline-none">
+                    <button onclick="handleTrack()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition">Search</button>
+                </div>
+                <p id="trackError" class="text-red-500 font-medium hidden bg-red-50 p-2 rounded"><i class="fa-solid fa-circle-exclamation mr-2"></i>Tracking ID not found.</p>
+
+                <div id="trackResult" class="hidden mt-8 text-left border-t pt-8 animate-pulse-once">
+                    <div class="flex justify-between items-center mb-8 bg-slate-50 p-4 rounded-lg">
+                        <div>
+                            <span class="text-xs uppercase text-slate-400 font-bold">Tracking ID</span>
+                            <div id="resId" class="font-bold text-xl text-blue-900">TRK000</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs uppercase text-slate-400 font-bold">Current Status</span>
+                            <div id="resStatus" class="font-bold text-xl text-green-600">Unknown</div>
+                        </div>
+                    </div>
+
+                    <div class="relative flex justify-between items-center mt-4 px-2">
+                        <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 -translate-y-1/2 hidden md:block"></div>
+                        
+                        <div class="step-box text-center bg-white p-2 z-10">
+                            <div id="s1" class="w-10 h-10 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-2 transition-colors duration-300"><i class="fa-solid fa-clipboard"></i></div>
+                            <p class="text-xs font-bold text-slate-600">Ordered</p>
+                        </div>
+                        <div class="step-box text-center bg-white p-2 z-10">
+                            <div id="s2" class="w-10 h-10 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-2 transition-colors duration-300"><i class="fa-solid fa-box"></i></div>
+                            <p class="text-xs font-bold text-slate-600">Shipped</p>
+                        </div>
+                        <div class="step-box text-center bg-white p-2 z-10">
+                            <div id="s3" class="w-10 h-10 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-2 transition-colors duration-300"><i class="fa-solid fa-truck"></i></div>
+                            <p class="text-xs font-bold text-slate-600">Out for Delivery</p>
+                        </div>
+                        <div class="step-box text-center bg-white p-2 z-10">
+                            <div id="s4" class="w-10 h-10 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-2 transition-colors duration-300"><i class="fa-solid fa-check"></i></div>
+                            <p class="text-xs font-bold text-slate-600">Delivered</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-login" class="page-section hidden">
+            <div class="max-w-md mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 mt-10">
+                <div class="bg-slate-900 p-6 text-center">
+                    <h2 class="text-2xl font-bold text-white">Admin Login</h2>
+                    <p class="text-slate-400 text-sm">Restricted Access</p>
+                </div>
+                <div class="p-8 space-y-6">
+                    <div id="loginError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline">Invalid Email or Password.</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-400"></i>
+                            <input type="email" id="loginEmail" class="pl-10 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="admin@company.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400"></i>
+                            <input type="password" id="loginPass" class="pl-10 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button onclick="attemptLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-md">
+                        Sign In
+                    </button>
+                    <p class="text-center text-xs text-slate-400 mt-4">Project Default: omthorve2005@gmail.com / om2005</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-admin" class="page-section hidden">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-slate-800 text-white p-6 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center font-bold">A</div>
+                        <div>
+                            <h2 class="text-lg font-bold">Admin Dashboard</h2>
+                            <p class="text-xs text-slate-400">Logged in as: omthorve2005@gmail.com</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded transition">Logout</button>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="font-bold text-lg mb-4 text-slate-700 border-b pb-2">Update Shipment Status</h3>
+                    
+                    <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-8 flex flex-col md:flex-row gap-4 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tracking ID</label>
+                            <input type="text" id="adminInputId" class="w-full p-2 border border-gray-300 rounded bg-white uppercase" placeholder="TRK001">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">New Status</label>
+                            <select id="adminInputStatus" class="w-full p-2 border border-gray-300 rounded bg-white">
+                                <option>Order Placed</option>
+                                <option>Shipped</option>
+                                <option>Out for Delivery</option>
+                                <option>Delivered</option>
+                            </select>
+                        </div>
+                        <button onclick="adminUpdate()" class="bg-slate-800 text-white px-6 py-2 rounded hover:bg-black w-full md:w-auto shadow">Update Status</button>
+                    </div>
+
+                    <h3 class="font-bold text-lg mb-4 text-slate-700">Database Records</h3>
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table class="w-full text-sm text-left text-slate-600">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b">
+                                <tr>
+                                    <th class="px-6 py-3">Tracking ID</th>
+                                    <th class="px-6 py-3">Customer Name</th>
+                                    <th class="px-6 py-3">Destination</th>
+                                    <th class="px-6 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody" class="divide-y">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-contact" class="page-section hidden">
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Contact Support</h2>
+                    <p class="text-slate-500 mb-6">We are here to help with your delivery.</p>
+                    <form onsubmit="event.preventDefault(); alert('Message sent successfully!');" class="space-y-4">
+                        <input type="text" placeholder="Your Name" class="w-full p-3 border rounded-lg bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="email" placeholder="Your Email" class="w-full p-3 border rounded-lg bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <textarea rows="3" placeholder="How can we help?" class="w-full p-3 border rounded-lg bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">Send Message</button>
+                    </form>
+                </div>
+                <div class="bg-slate-900 p-8 text-white flex flex-col justify-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold mb-6">Head Office</h3>
+                        <ul class="space-y-6">
+                            <li class="flex items-center gap-4"><i class="fa-solid fa-phone text-blue-400"></i> +91 98765 43210</li>
+                            <li class="flex items-center gap-4"><i class="fa-solid fa-envelope text-blue-400"></i> help@fasttrack.com</li>
+                            <li class="flex items-center gap-4"><i class="fa-solid fa-location-dot text-blue-400"></i> Tech Park, Pune, India</li>
+                        </ul>
+                    </div>
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-800 rounded-full opacity-50"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t py-6 text-center text-slate-400 text-sm mt-auto">
+        <p>&copy; 2025 FastTrack Logistics. Student Project.</p>
+    </footer>
+
+    <script>
+        /* ---------------- DATA STORE ---------------- */
+        const database = [
+            { id: "TRK001", customer: "Om Thorve", dest: "Pune, MH", status: "Order Placed" },
+            { id: "TRK002", customer: "Aditya Raj", dest: "Mumbai, MH", status: "Shipped" },
+            { id: "TRK003", customer: "Sneha Patil", dest: "Bangalore, KA", status: "Out for Delivery" },
+            { id: "TRK004", customer: "Rahul Verma", dest: "Delhi, DL", status: "Delivered" },
+        ];
+
+        const statusOrder = ["Order Placed", "Shipped", "Out for Delivery", "Delivered"];
+        
+        // --- LOGIN STATE ---
+        let isAdminLoggedIn = false;
+        const ADMIN_USER = "omthorve2005@gmail.com";
+        const ADMIN_PASS = "om2005";
+
+        /* ---------------- ROUTING SYSTEM ---------------- */
+        function router(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Visual: Update Navbar active state
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
+            const navBtn = document.getElementById(`nav-${pageId}`);
+            if(navBtn) navBtn.classList.add('nav-active');
+
+            // Show requested page
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+
+            // Special Init for Admin Page
+            if(pageId === 'admin') {
+                renderAdminTable();
+            }
+        }
+
+        /* ---------------- AUTHENTICATION LOGIC ---------------- */
+        // Called when clicking "Admin Panel" in Nav
+        function checkAdminAccess() {
+            if (isAdminLoggedIn) {
+                router('admin');
+            } else {
+                router('login');
+            }
+        }
+
+        // Called when clicking "Sign In"
+        function attemptLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const errorBox = document.getElementById('loginError');
+
+            if (email === ADMIN_USER && pass === ADMIN_PASS) {
+                // Success
+                isAdminLoggedIn = true;
+                errorBox.classList.add('hidden');
+                alert("Login Successful! Welcome Admin.");
+                
+                // Clear fields
+                document.getElementById('loginEmail').value = "";
+                document.getElementById('loginPass').value = "";
+                
+                router('admin');
+            } else {
+                // Failure
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            isAdminLoggedIn = false;
+            alert("Logged out successfully.");
+            router('home');
+        }
+
+        /* ---------------- TRACKING LOGIC ---------------- */
+        function handleTrack() {
+            const input = document.getElementById('trackInput').value.toUpperCase().trim();
+            const resultBox = document.getElementById('trackResult');
+            const errorMsg = document.getElementById('trackError');
+
+            const shipment = database.find(item => item.id === input);
+
+            if (shipment) {
+                errorMsg.classList.add('hidden');
+                resultBox.classList.remove('hidden');
+                
+                document.getElementById('resId').innerText = shipment.id;
+                document.getElementById('resStatus').innerText = shipment.status;
+                updateProgressUI(shipment.status);
+            } else {
+                errorMsg.classList.remove('hidden');
+                resultBox.classList.add('hidden');
+            }
+        }
+
+        function updateProgressUI(status) {
+            const idx = statusOrder.indexOf(status);
+            for (let i = 0; i < 4; i++) {
+                const circle = document.getElementById(`s${i+1}`);
+                // Reset style
+                circle.className = "w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-2 transition-all duration-500 ";
+                
+                if (i <= idx) {
+                    // Completed Step
+                    circle.classList.add("bg-green-500", "text-white", "shadow-lg", "scale-110");
+                } else {
+                    // Future Step
+                    circle.classList.add("bg-gray-200", "text-gray-400");
+                }
+            }
+        }
+
+        /* ---------------- ADMIN DASHBOARD LOGIC ---------------- */
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = ""; 
+
+            database.forEach(item => {
+                // Determine color badge for status
+                let badgeColor = "bg-gray-100 text-gray-800";
+                if(item.status === "Shipped") badgeColor = "bg-blue-100 text-blue-800";
+                if(item.status === "Out for Delivery") badgeColor = "bg-yellow-100 text-yellow-800";
+                if(item.status === "Delivered") badgeColor = "bg-green-100 text-green-800";
+
+                const row = `
+                    <tr class="bg-white border-b hover:bg-slate-50 transition">
+                        <td class="px-6 py-4 font-medium text-slate-900">${item.id}</td>
+                        <td class="px-6 py-4">${item.customer}</td>
+                        <td class="px-6 py-4">${item.dest}</td>
+                        <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${badgeColor}">${item.status}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function adminUpdate() {
+            const id = document.getElementById('adminInputId').value.toUpperCase().trim();
+            const newStatus = document.getElementById('adminInputStatus').value;
+
+            const index = database.findIndex(item => item.id === id);
+            if (index !== -1) {
+                database[index].status = newStatus;
+                alert(`Success: Updated ${id} to '${newStatus}'`);
+                renderAdminTable();
+            } else {
+                alert("Error: Tracking ID not found in database.");
+            }
+        }
+
+        // Start at Home
+        router('home');
+
+    </script>
+</body>
+</html>
